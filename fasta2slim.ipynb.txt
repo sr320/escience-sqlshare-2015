@@ -1,0 +1,291 @@
+{
+ "metadata": {
+  "name": "",
+  "signature": "sha256:f91c8a330c903a7842fa76a83b6ca8876c4026834e63d3e2427a7ad77d6eefd1"
+ },
+ "nbformat": 3,
+ "nbformat_minor": 0,
+ "worksheets": [
+  {
+   "cells": [
+    {
+     "cell_type": "heading",
+     "level": 1,
+     "metadata": {},
+     "source": [
+      "Fasta2Slim"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "This IPython notebook is intended to serve as a structured means to annotate sequences using UniProt/SwissProt database. The notebook can be easily modified to personal preferences. As developed, the notebook requires the user has the following software installed ...\n",
+      "\n",
+      "* IPython\n",
+      "* NCBI Blast\n",
+      "* SQLShare Python Client\n",
+      "\n",
+      "---\n"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "**Instructions for use.**   \n",
+      "In a working directory of your choosing place query fasta file, naming as `query.fa`. Edit the cell below, providing the path to said working directory. \n",
+      "\n",
+      "Identify the location of the blast database you would like to use and indicate path in the cell below.\n",
+      "\n",
+      "Identify the location of your `sqlshare-pythonclient/tools`  and indicate path in the cell below.\n",
+      "\n",
+      "Change the input to the `usr` variable to reflect your SQLShare user account."
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "#Location Variables\n",
+      "wd=\"~/Desktop/test/\"\n",
+      "\n",
+      "db=\"/Volumes/Bay3/Software/ncbi-blast-2.2.29\\+/db/uniprot_sprot_r2013_12\"\n",
+      "\n",
+      "sqls=\"~/sqlshare-pythonclient/tools/\"\n",
+      "\n",
+      "usr=\"sr320@washington.edu\""
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": [],
+     "prompt_number": 2
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "!head {wd}query.fa"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": [
+      {
+       "output_type": "stream",
+       "stream": "stdout",
+       "text": [
+        ">PiuraChilensis_v1_contig_1\r\n",
+        "ATTTACAATACGAAGTAAAATAGATAACGTGAAAATAATCTTGGTGCTGGATGATCGATC\r\n",
+        "AAGTTCACCAATATTTTATTGTAAAAAATCATTCTAAACAGCATGAAATCGTGTACAATG\r\n",
+        "TATAAACAAGCAAATATATAACACTAAAGCAAGAGGGCGTAAGTGGGGGGGTGGGTGAGA\r\n",
+        "GTAAAAAATTCAAACATGTCAAATACCCCGGCGTTAGCCTTAAAAGCACCATGGACTTCT\r\n",
+        "GCCTTCAATAAGCATAAAATTAAAACACCTAATACACAATGAATATACAGATAAAACAGA\r\n",
+        "TTTATGAATAGTTGGTGTTACATCTTTTACAGCCATAAGCCTTCATTTTGCTTCCAAACG\r\n",
+        "TATAAAATCTGACTTGGAACAATATACAGCCATGAGATATGACACAGCGAGCACTACAAT\r\n",
+        "ATATATTTATCTTGTACTATACAGCCTGTACAAGAAAATTCTGGAATTGTCTTCACAAGA\r\n",
+        "GACAGAAAAATAGTTGCAATGTGAATGCTAGTCTACTATTTGATCACAATTGGATAGAAA\r\n"
+       ]
+      }
+     ],
+     "prompt_number": 254
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "#number of sequences\n",
+      "!fgrep -c \">\" {wd}query.fa"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": [
+      {
+       "output_type": "stream",
+       "stream": "stdout",
+       "text": [
+        "282\r\n"
+       ]
+      }
+     ]
+    },
+    {
+     "cell_type": "heading",
+     "level": 2,
+     "metadata": {},
+     "source": [
+      "Blast"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "!blastx \\\n",
+      "-query {wd}query.fa \\\n",
+      "-db {db} \\\n",
+      "-max_target_seqs 1 \\\n",
+      "-max_hsps 1 \\\n",
+      "-outfmt 6 \\\n",
+      "-evalue 1E-05 \\\n",
+      "-num_threads 2 \\\n",
+      "-out {wd}blast_sprot.tab"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": [
+      {
+       "output_type": "stream",
+       "stream": "stdout",
+       "text": [
+        "Selenocysteine (U) at position 637 replaced by X\r\n"
+       ]
+      },
+      {
+       "output_type": "stream",
+       "stream": "stdout",
+       "text": [
+        "Selenocysteine (U) at position 690 replaced by X\r\n"
+       ]
+      }
+     ]
+    },
+    {
+     "cell_type": "heading",
+     "level": 3,
+     "metadata": {},
+     "source": [
+      "Number of matched sequences:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "!wc -l {wd}blast_sprot.tab "
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "!tr '|' \"\\t\" <{wd}blast_sprot.tab> {wd}blast_sprot_sql.tab \n",
+      "!head -1 {wd}blast_sprot.tab\n",
+      "!echo SQLShare ready version has Pipes converted to Tabs ....\n",
+      "!head -1 {wd}blast_sprot_sql.tab "
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "heading",
+     "level": 1,
+     "metadata": {},
+     "source": [
+      "Joining in SQL Share"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "!python {sqls}singleupload.py \\\n",
+      "-d _blast_sprot \\\n",
+      "{wd}blast_sprot_sql.tab "
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "!python {sqls}fetchdata.py \\\n",
+      "-s \"SELECT Column1, term, GOSlim_bin, aspect, ProteinName FROM [{usr}].[_blast_sprot]md left join [samwhite@washington.edu].[UniprotProtNamesReviewed_yes20130610]sp on md.Column3=sp.SPID left join [sr320@washington.edu].[SPID and GO Numbers]go on md.Column3=go.SPID left join [sr320@washington.edu].[GO_to_GOslim]slim on go.GOID=slim.GO_id where aspect like 'P'\" \\\n",
+      "-f tsv \\\n",
+      "-o {wd}GOdescriptions.txt"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": [],
+     "prompt_number": 3
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "!head -2 {wd}GOdescriptions.txt"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "heading",
+     "level": 4,
+     "metadata": {},
+     "source": [
+      "Plot GoSlim terms"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "pylab inline"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "cd {wd}"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "from pandas import *\n",
+      "\n",
+      "gs = read_table('GOdescriptions.txt')"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "gs.groupby('GOSlim_bin').Column1.count().plot(kind='barh', color=list('y'))\n",
+      "savefig('GOSlim.png', bbox_inches='tight')\n",
+      "\n"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    }
+   ],
+   "metadata": {}
+  }
+ ]
+}
